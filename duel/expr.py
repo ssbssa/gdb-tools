@@ -5,6 +5,11 @@ try: a=xrange # Python 3 compatibility
 except:
     def xrange(f,t,s=1): return range(int(f),int(t),s)
 
+try:
+    maxint = sys.maxint
+except:
+    maxint = sys.maxsize
+
 aliases = dict()
 scopes = list()
 
@@ -180,7 +185,7 @@ class URange(UnaryBase):
     def no_parens(self): return True
     def eval(self):
         for n1,v1 in self.arg1_.eval():
-            for i in xrange(0 if self.to else v1, v1 if self.to else sys.maxsize):
+            for i in xrange(0 if self.to else v1, v1 if self.to else maxint):
                 v = gdb.Value(i).cast(v1.type)
                 yield val2str(v), v
 

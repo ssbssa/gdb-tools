@@ -13,6 +13,12 @@ except:
 aliases = dict()
 scopes = list()
 
+try:
+    gdb.parse_and_eval("$_strlen")("")
+    can_call_conv_func = True
+except:
+    can_call_conv_func = False
+
 def val2str(v):
     try: v = v.referenced_value() if v.type.code==gdb.TYPE_CODE_REF else v
     except: pass
@@ -292,7 +298,7 @@ class Call(BinaryBase):
             nams = [] + args
             vals = [] + args
             cur = -1
-            if v1.type.code == gdb.TYPE_CODE_INTERNAL_FUNCTION:
+            if not can_call_conv_func and v1.type.code == gdb.TYPE_CODE_INTERNAL_FUNCTION:
                 v1=lambda *args: parse_and_call(n1, *args)
             while True:
                 while cur < len(args)-1:

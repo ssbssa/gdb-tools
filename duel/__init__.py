@@ -54,3 +54,13 @@ Type "dl" for help"""
                     traceback.print_exc()
 
 duel()
+
+try:
+    from duel.tui import DuelWindow, DuelAdd, DuelDel
+
+    DuelWindow.register_window_type("duel")
+    gdb.execute("tui new-layout duel src 2 duel 1 status 0 cmd 1")
+    DuelAdd()
+    DuelDel()
+except:
+    pass

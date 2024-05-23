@@ -54,15 +54,66 @@ class Literal(Expr):
     def __init__(self, n, v): self.name_, self.value_ = n, v
     def no_parens(self): return True
 
+class MethodCaller(object):
+    def __init__(self, c, n):
+        self.class_, self.name_ = c, n
+    def find_xmethod(self):
+        progspace = gdb.current_progspace()
+        t = self.class_.type.strip_typedefs()
+        for objfile in progspace.objfiles():
+            for xmethod in objfile.xmethods:
+                if xmethod.enabled:
+                    xm = xmethod.match(t, self.name_)
+                    if xm:
+                        return xm
+        for xmethod in progspace.xmethods:
+            if xmethod.enabled:
+                xm = xmethod.match(t, self.name_)
+                if xm:
+                    return xm
+        for xmethod in gdb.xmethods:
+            if xmethod.enabled:
+                xm = xmethod.match(t, self.name_)
+                if xm:
+                    return xm
+    def __call__(self, *args):
+        xm = self.find_xmethod()
+        if xm:
+            return xm(self.class_.address, *args)
+        return self.class_[self.name_](self.class_.address, *args)
+    def __str__(self):
+        return "<MethodCaller for %s::%s>" % (self.class_.type.strip_typedefs().tag, self.name_)
+
 class Ident(Expr):
-    def __init__(self, n): self.name_, self.scope, self.sym = n, None, None
+    def __init__(self, n): self.name_, self.scope, self.sym, self.method = n, None, None, False
     def no_parens(self): return True
     def symval(self, s): return s.value(gdb.selected_frame()) if s.needs_frame else s.value()
     def value(self):
-        if self.scope: return scopes[self.scope][self.name_]
+        if self.scope:
+            if self.method:
+                c = scopes[self.scope]
+                if c.type.code == gdb.TYPE_CODE_REF or c.type.code == gdb.TYPE_CODE_RVALUE_REF:
+                    c = c.referenced_value()
+                if c.type.code == gdb.TYPE_CODE_PTR:
+                    c = c.dereference()
+                return MethodCaller(c, self.name_)
+            return scopes[self.scope][self.name_]
         if self.sym: return self.symval(self.sym)
         if self.name_ in aliases: return aliases[self.name_][1]
         for self.scope in range(len(scopes)-1,-1,-1):
+            try:
+                c = scopes[self.scope]
+                if c.type.code == gdb.TYPE_CODE_REF or c.type.code == gdb.TYPE_CODE_RVALUE_REF:
+                    c = c.referenced_value()
+                if c.type.code == gdb.TYPE_CODE_PTR:
+                    c = c.dereference()
+                # this throws if no method is found
+                c.type.method(self.name_)
+                self.method = True
+                return MethodCaller(c, self.name_)
+            except:
+                pass
+
             try: return scopes[self.scope][self.name_]
             except gdb.error: self.scope = None
         try: self.sym = gdb.lookup_symbol(self.name_)[0]

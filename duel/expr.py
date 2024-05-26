@@ -84,6 +84,9 @@ class MethodCaller(object):
     def __str__(self):
         return "<MethodCaller for %s::%s>" % (self.class_.type.strip_typedefs().tag, self.name_)
 
+def sizeof(v):
+    return gdb.Value(v.type.sizeof)
+
 class Ident(Expr):
     def __init__(self, n): self.name_, self.scope, self.sym, self.method = n, None, None, False
     def no_parens(self): return True
@@ -119,6 +122,7 @@ class Ident(Expr):
         try: self.sym = gdb.lookup_symbol(self.name_)[0]
         except gdb.error: self.sym = gdb.lookup_global_symbol(self.name_)
         if self.sym: return self.symval(self.sym)
+        if self.name_ == "sizeof": return sizeof
         return gdb.parse_and_eval(self.name_)
 
 class Underscore(Expr):

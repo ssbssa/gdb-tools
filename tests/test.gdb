@@ -55,7 +55,7 @@ Try "dl operators" or "dl longhelp"
 (gdb) dl 0x20
 0x20 = 32
 (gdb) dl 019
-Expected 'if' or ident or '&&/' or '||/' or '#/' or '+/' or '-' or '*' or '&' or '!' or '~' or '(cast)' or real or hexadecimal or decimal or octal or char or string or underscores or gdbvar or '(' or '{' or '..' at position (1, 1) => '*019'.
+Expected 'if' or ident or '&&/' or '||/' or '#/' or '+/' or '++' or '--' or '-' or '*' or '&' or '!' or '~' or '(cast)' or real or hexadecimal or decimal or octal or char or string or underscores or gdbvar or '(' or '{' or '..' at position (1, 1) => '*019'.
 (gdb) dl foo
 foo = 1
 (gdb) dl bar
@@ -480,3 +480,18 @@ arr[1] /= 5 = 7
 (gdb) dl ..2 => arr[_] = _ + 1
 arr[0] = 0 + 1 = 1
 arr[1] = 1 + 1 = 2
+(gdb) dl ++arr[..2]
+++arr[0] = 2
+++arr[1] = 3
+(gdb) dl --arr[..2]
+--arr[0] = 1
+--arr[1] = 2
+(gdb) dl arr[..2]++
+arr[0]++ = 1
+arr[1]++ = 2
+(gdb) dl arr[..2]--
+arr[0]-- = 2
+arr[1]-- = 3
+(gdb) dl arr[..2]
+arr[0] = 1
+arr[1] = 2

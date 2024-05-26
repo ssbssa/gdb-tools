@@ -69,7 +69,8 @@ def term19(): return term19b, ZeroOrMore([
             ('[', expression, ']'),
             ('[[', expression, ']]'),
         ])
-def term18(): return ZeroOrMore(['&&/', '||/', '#/', '+/', '-', '*', '&', '!', '~', cast]), term19,
+def term18a(): return term19, Optional(['++', '--'])
+def term18(): return ZeroOrMore(['&&/', '||/', '#/', '+/', '++', '--', '-', '*', '&', '!', '~', cast]), term18a,
 def term17(): return term18, ZeroOrMore(['/', '*', '%'], term18)
 def term16(): return term17, ZeroOrMore(['-', '+'], term17)
 def term15(): return term16, ZeroOrMore(['<<', '>>'], term16)
@@ -112,9 +113,10 @@ def getchar(s):
     m = re.match('([0-7]{1,3})(.*)', s[1:])
     return unichr(int(m.group(1), 8)), m.group(2)
 
-def set_value(where, value):
+def set_value(where, value, postfix=False):
+    ret = gdb.Value(where.bytes, where.type) if postfix else where
     where.assign(value)
-    return where
+    return ret
 
 class DuelVisitor(PTNodeVisitor):
     def visit__default__(self, node, ch):
@@ -173,6 +175,13 @@ class DuelVisitor(PTNodeVisitor):
                 if not isinstance(r, expr.List): r = expr.List([r])
             l = expr.Call(l, r)
         return l
+    def visit_term18a(self, node, ch):
+        l = ch.pop(0)
+        while len(ch):
+            op = ch.pop(0)
+            if   op == '++': l = expr.UnaryPostfix(l, op, lambda x: set_value(x, x+1, True))
+            elif op == '--': l = expr.UnaryPostfix(l, op, lambda x: set_value(x, x-1, True))
+        return l
     def visit_term18(self, node, ch):
         r = ch.pop()
         while (len(ch)):
@@ -186,8 +195,8 @@ class DuelVisitor(PTNodeVisitor):
             elif op == '&':   r = expr.Unary(op, r, lambda x: x.address or type_error("Not addressable"))
             elif op == '!':   r = expr.Unary(op, r, lambda x: gdb.Value(not x))
             elif op == '~':   r = expr.Unary(op, r, lambda x: ~x)
-            elif op == '++':  not_implemented()
-            elif op == '--':  not_implemented()
+            elif op == '++':  r = expr.Unary(op, r, lambda x: set_value(x, x+1))
+            elif op == '--':  r = expr.Unary(op, r, lambda x: set_value(x, x-1))
             else:
                 t = types[op]
                 r = expr.Unary('('+op+')', r, lambda x: x.cast(t))

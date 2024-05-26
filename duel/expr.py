@@ -140,6 +140,12 @@ class Unary(UnaryBase):
         self.name_ = n if '{' in n else n + '{0}'
         self.value = v
 
+class UnaryPostfix(UnaryBase):
+    def __init__(self, a, n, v):
+        super (UnaryPostfix, self).__init__ (a)
+        self.name_ = n if '{' in n else '{0}' + n
+        self.value = v
+
 class Parens(UnaryBase):
     name_ = "({0})"
     def no_parens(self): return True

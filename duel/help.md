@@ -369,7 +369,7 @@ To Do
 Features of the original Duel, that are not implemented in the
 Duel.py yet:
 
-* Builtins: `frame()`, `sizeof()`, `frames_no`, `func.x`
+* Builtins: `sizeof()`
 * Variables: `int i; i=5; i++`
 * `while` and `for` operators
 

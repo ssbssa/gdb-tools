@@ -463,3 +463,5 @@ $a + $1 = 10
 $_strlen(s) = 2
 (gdb) dl $_regex(s, ".*[0-9]")
 $_regex(s,".*[0-9]") = true
+(gdb) dl struct_pointer()->v
+struct_pointer()->v = 8

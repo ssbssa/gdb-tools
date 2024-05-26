@@ -63,13 +63,13 @@ def term21(): return [real, hexadecimal, decimal, octal, char, string,
                       underscores, ident, gdbvar]
 def term20(): return [ term21, parens ]
 def term19a(): return term20, Optional('#', ident)
-def term19(): return term19a, ZeroOrMore([
-            (['.', '->', '-->', '@'], term19a),
+def term19b(): return term19a, ZeroOrMore('(', Optional(expression), ')')
+def term19(): return term19b, ZeroOrMore([
+            (['.', '->', '-->', '@'], term19b),
             ('[', expression, ']'),
             ('[[', expression, ']]'),
         ])
-def term18a(): return term19, ZeroOrMore('(', Optional(expression), ')')
-def term18(): return ZeroOrMore(['&&/', '||/', '#/', '+/', '-', '*', '&', '!', '~', cast]), term18a,
+def term18(): return ZeroOrMore(['&&/', '||/', '#/', '+/', '-', '*', '&', '!', '~', cast]), term19,
 def term17(): return term18, ZeroOrMore(['/', '*', '%'], term18)
 def term16(): return term17, ZeroOrMore(['-', '+'], term17)
 def term15(): return term16, ZeroOrMore(['<<', '>>'], term16)
@@ -158,7 +158,7 @@ class DuelVisitor(PTNodeVisitor):
             elif op == '[[':  l, _ = expr.TakeNth(l, r), ch.pop(0)
             elif op == '@':   l    = expr.Until(l, r)
         return l
-    def visit_term18a(self, node, ch):
+    def visit_term19b(self, node, ch):
         l = ch.pop(0)
         while len(ch):
             ch.pop(0) # '('

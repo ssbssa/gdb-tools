@@ -82,8 +82,8 @@ def term9():  return term10, ZeroOrMore('|', term10)
 def term8():  return term9, ZeroOrMore('&&', term9)
 def term7():  return term8, ZeroOrMore('||', term8)
 def term6():  return term7, Optional('?', term6, ':', term6)
-#def term5():  return term6, ZeroOrMore(['=', '+=', '-=', '*=', '/='], term6)
-def term4():  return Optional(ident, ':='), term6
+def term5():  return term6, ZeroOrMore(['=', '+=', '-=', '*=', '/='], term6)
+def term4():  return Optional(ident, ':='), term5
 def term3():  return term4, ZeroOrMore(',', term4)
 def term2():  return term3, ZeroOrMore('=>', term1)
 def ifterm(): return 'if', '(', expression , ')', term1, Optional('else', term1)
@@ -111,6 +111,10 @@ def getchar(s):
         return unichr(int(m.group(1), 16)), m.group(2)
     m = re.match('([0-7]{1,3})(.*)', s[1:])
     return unichr(int(m.group(1), 8)), m.group(2)
+
+def set_value(where, value):
+    where.assign(value)
+    return where
 
 class DuelVisitor(PTNodeVisitor):
     def visit__default__(self, node, ch):
@@ -274,11 +278,11 @@ class DuelVisitor(PTNodeVisitor):
         l = ch.pop(0)
         while len(ch):
             op, r = ch.pop(0), ch.pop(0)
-            if   op == '=':   not_implemented()
-            elif op == '+=':  not_implemented()
-            elif op == '-=':  not_implemented()
-            elif op == '*=':  not_implemented()
-            elif op == '/=':  not_implemented()
+            if   op == '=':   l = expr.Binary(l, op, r, lambda x,y: set_value(x, y))
+            elif op == '+=':  l = expr.Binary(l, op, r, lambda x,y: set_value(x, x+y))
+            elif op == '-=':  l = expr.Binary(l, op, r, lambda x,y: set_value(x, x-y))
+            elif op == '*=':  l = expr.Binary(l, op, r, lambda x,y: set_value(x, x*y))
+            elif op == '/=':  l = expr.Binary(l, op, r, lambda x,y: set_value(x, x/y))
         return l
     def visit_term4(self, node, ch):
         if len(ch) == 1: return ch[0]

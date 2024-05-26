@@ -465,3 +465,18 @@ $_strlen(s) = 2
 $_regex(s,".*[0-9]") = true
 (gdb) dl struct_pointer()->v
 struct_pointer()->v = 8
+(gdb) dl arr[..2] += 5
+arr[0] += 5 = 10
+arr[1] += 5 = 15
+(gdb) dl arr[..2] *= 3
+arr[0] *= 3 = 30
+arr[1] *= 3 = 45
+(gdb) dl arr[..2] -= 10
+arr[0] -= 10 = 20
+arr[1] -= 10 = 35
+(gdb) dl arr[..2] /= 5
+arr[0] /= 5 = 4
+arr[1] /= 5 = 7
+(gdb) dl ..2 => arr[_] = _ + 1
+arr[0] = 0 + 1 = 1
+arr[1] = 1 + 1 = 2

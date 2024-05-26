@@ -371,7 +371,6 @@ Duel.py yet:
 
 * Builtins: `frame()`, `sizeof()`, `frames_no`, `func.x`
 * Variables: `int i; i=5; i++`
-* Assignments: `x[..10]=0`
 * `while` and `for` operators
 
 Features that were not in the original Duel:

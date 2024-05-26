@@ -87,8 +87,59 @@ class MethodCaller(object):
 def sizeof(v):
     return gdb.Value(v.type.sizeof)
 
+class Frame(object):
+    def __init__(self, f):
+        self.frame = f
+    def __getitem__(self, key):
+        block = self.frame.block()
+        while block:
+            if not block.is_global:
+                for symbol in block:
+                    if symbol.is_argument or symbol.is_variable or symbol.is_constant:
+                        if symbol.name == key:
+                            return symbol.value(self.frame)
+            if block.function:
+                break
+            block = block.superblock
+        raise gdb.error("Variable '%s' not found in frame" % key)
+    def __eq__(self, other):
+        return self.frame.name() == other.frame.name()
+    def __str__(self):
+        return "<Frame %d: %s>" % (self.frame.level(), self.frame.name())
+
+def find_frame(n):
+    try:
+        f = gdb.newest_frame()
+        while f:
+            if f.name() == n: return Frame(f)
+            f = f.older()
+    except gdb.error:
+        pass
+
+def count_frames():
+    c = 0
+    try:
+        f = gdb.newest_frame()
+        while f:
+            c += 1
+            f = f.older()
+    except gdb.error:
+        pass
+    return gdb.Value(c)
+
+def get_frame(idx):
+    idx = int(idx)
+    c = 0
+    f = gdb.newest_frame()
+    while f:
+        if c == idx:
+            return Frame(f)
+        c += 1
+        f = f.older()
+    raise IndexError("Frame '%d' does not exist" % idx)
+
 class Ident(Expr):
-    def __init__(self, n): self.name_, self.scope, self.sym, self.method = n, None, None, False
+    def __init__(self, n): self.name_, self.scope, self.sym, self.method, self.frame = n, None, None, False, None
     def no_parens(self): return True
     def symval(self, s): return s.value(gdb.selected_frame()) if s.needs_frame else s.value()
     def value(self):
@@ -102,6 +153,7 @@ class Ident(Expr):
                 return MethodCaller(c, self.name_)
             return scopes[self.scope][self.name_]
         if self.sym: return self.symval(self.sym)
+        if self.frame: return self.frame
         if self.name_ in aliases: return aliases[self.name_][1]
         for self.scope in range(len(scopes)-1,-1,-1):
             try:
@@ -121,8 +173,15 @@ class Ident(Expr):
             except gdb.error: self.scope = None
         try: self.sym = gdb.lookup_symbol(self.name_)[0]
         except gdb.error: self.sym = gdb.lookup_global_symbol(self.name_)
-        if self.sym: return self.symval(self.sym)
+        if self.sym:
+            if self.sym.type.code != gdb.TYPE_CODE_FUNC:
+                return self.symval(self.sym)
+            self.sym = None
+        self.frame = find_frame(self.name_)
+        if self.frame: return self.frame
         if self.name_ == "sizeof": return sizeof
+        elif self.name_ == "frames_no": return count_frames()
+        elif self.name_ == "frame": return get_frame
         return gdb.parse_and_eval(self.name_)
 
 class Underscore(Expr):

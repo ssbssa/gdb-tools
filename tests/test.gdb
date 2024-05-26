@@ -127,9 +127,9 @@ tree-->left->v[[2]] = 8
 (gdb) dl tree-->left->v[[5]]
 generator raised StopIteration
 (gdb) dl tree-->left->v[[-1]]
-tree-->left->v[[-1]] = 0
+tree-->left->v[[- 1]] = 0
 (gdb) dl tree-->left->v[[-2]]
-tree-->left->v[[-2]] = 8
+tree-->left->v[[- 2]] = 8
 (gdb) dl tree-->left->v[[{-3}]]
 tree-->left->v[[1]] = 12
 (gdb) dl tree-->left->v[[-5]]
@@ -165,11 +165,11 @@ Attempt to take contents of a non-pointer value.
 (gdb) dl &&/arr[0..]
 &&/arr[0..] = 0
 (gdb) dl -5
-= -5
-(gdb) dl --10
---10 = 10
+- 5 = -5
+(gdb) dl - -10
+- - 10 = 10
 (gdb) dl -foo
--foo = -1
+- foo = -1
 (gdb) dl !0
 !0 = true
 (gdb) dl !foo

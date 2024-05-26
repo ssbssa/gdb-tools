@@ -181,7 +181,7 @@ class DuelVisitor(PTNodeVisitor):
             elif op == '+/':  r = expr.EagerGrouping(op, r,  lambda i, x: i + x)
             elif op == '&&/': r = expr.LazyGrouping(op, r, 1, lambda i, x: 1 if i and x else 0)
             elif op == '||/': r = expr.LazyGrouping(op, r, 0, lambda i, x: 1 if i or x else 0)
-            elif op == '-':   r = expr.Unary(op, r, lambda x: -x)
+            elif op == '-':   r = expr.Unary('- ', r, lambda x: -x)
             elif op == '*':   r = expr.Unary(op, r, lambda x: x.dereference())
             elif op == '&':   r = expr.Unary(op, r, lambda x: x.address or type_error("Not addressable"))
             elif op == '!':   r = expr.Unary(op, r, lambda x: gdb.Value(not x))

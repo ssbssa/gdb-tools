@@ -1,5 +1,6 @@
 import gdb
 import sys
+import re
 
 try: a=xrange # Python 3 compatibility
 except:
@@ -87,6 +88,38 @@ class MethodCaller(object):
 def sizeof(v):
     return gdb.Value(v.type.sizeof)
 
+template_re = None
+
+def filter_templates(n):
+    if not n: return None
+    if '<' not in n:
+        return n
+    global template_re
+    if template_re is None:
+        template_re = re.compile(r"(?<!\boperator)((?<!\boperator<)<|(?<!\boperator>)(?<!\boperator<=)>)")
+    level = 0
+    rest_arr = []
+    for s in template_re.split(n):
+        if s == "<":
+            level += 1
+        elif s == ">":
+            if level > 0:
+                level -= 1
+        elif level == 0:
+            rest_arr.append(s)
+    return "".join(rest_arr)
+
+word_re = None
+
+def function_name(n):
+    if not n: return None
+    n = filter_templates(n)
+    global word_re
+    if word_re is None:
+        word_re = re.compile(r"\w+")
+    words = word_re.findall(n)
+    if words: return words[-1]
+
 class Frame(object):
     def __init__(self, f):
         self.frame = f
@@ -103,15 +136,15 @@ class Frame(object):
             block = block.superblock
         raise gdb.error("Variable '%s' not found in frame" % key)
     def __eq__(self, other):
-        return self.frame.name() == other.frame.name()
+        return function_name(self.frame.name()) == function_name(other.frame.name())
     def __str__(self):
-        return "<Frame %d: %s>" % (self.frame.level(), self.frame.name())
+        return "<Frame %d: %s>" % (self.frame.level(), filter_templates(self.frame.name()))
 
 def find_frame(n):
     try:
         f = gdb.newest_frame()
         while f:
-            if f.name() == n: return Frame(f)
+            if n == function_name(f.name()): return Frame(f)
             f = f.older()
     except gdb.error:
         pass

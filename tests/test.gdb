@@ -70,9 +70,9 @@ s = 0xXXXXX "s1"
 '\x20' = 32 ' '
 (gdb) dl "foo\7bar"
 "foo\7bar" = "foo\abar"
-(gdb) dl "\a\r\n\v\t"[2..3]
-"\a\r\n\v\t"[2] = 10 '\n'
-"\a\r\n\v\t"[3] = 11 '\v'
+(gdb) dl "\a\r\n\v\t\\"[2..3]
+"\a\r\n\v\t\\"[2] = 10 '\n'
+"\a\r\n\v\t\\"[3] = 11 '\v'
 (gdb) dl "reverse"[6..2]
 "reverse"[6] = 101 'e'
 "reverse"[5] = 115 's'

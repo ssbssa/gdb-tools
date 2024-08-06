@@ -8,7 +8,7 @@ from duel import expr
 try: a=unichr # Python 3 compatibility
 except: unichr=chr
 
-escapes=r"""\\(?:[abefnrtv"'?]|[0-7]{1,3}|x[0-9a-fA-F]+|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8})"""
+escapes=r"""\\(?:[\\abefnrtv"'?]|[0-7]{1,3}|x[0-9a-fA-F]+|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8})"""
 
 # typespec parser
 types = dict()
@@ -101,7 +101,7 @@ def type_error(s): raise TypeError(s)
 def not_implemented(): raise NotImplementedError("Not implemented yet")
 
 def getchar(s):
-    escmap = {'a':'\a', 'b':'\b', 'e':'\033', 'f':'\f', 'n':'\n',
+    escmap = {'\\':'\\', 'a':'\a', 'b':'\b', 'e':'\033', 'f':'\f', 'n':'\n',
               'r':'\r', 't':'\t', 'v':'\v', '"':'"', "'":"'", '?':'?' }
     if s[0] != '\\': return s[0], s[1:]
     if s[1] in escmap: return escmap[s[1]], s[2:]

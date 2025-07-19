@@ -272,13 +272,13 @@ class DuelVisitor(PTNodeVisitor):
         l = ch.pop(0)
         while len(ch):
             op, r = ch.pop(0), ch.pop(0)
-            if   op == '&&': l = expr.Binary(l, op, r, lambda x,y: 1 if x and y else 0)
+            if   op == '&&': l = expr.Binary(l, op, r, lambda x,y: gdb.Value(1 if x and y else 0))
         return l
     def visit_term7(self, node, ch):
         l = ch.pop(0)
         while len(ch):
             op, r = ch.pop(0), ch.pop(0)
-            if   op == '||': l = expr.Binary(l, op, r, lambda x,y: 1 if x or y else 0)
+            if   op == '||': l = expr.Binary(l, op, r, lambda x,y: gdb.Value(1 if x or y else 0))
         return l
     def visit_term6(self, node, ch):
         if len(ch) == 1: return ch[0]

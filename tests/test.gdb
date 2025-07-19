@@ -495,3 +495,7 @@ arr[1]-- = 3
 (gdb) dl arr[..2]
 arr[0] = 1
 arr[1] = 2
+(gdb) dl 1 || 1 => foo
+foo = 1
+(gdb) dl 1 && 1 => foo
+foo = 1
